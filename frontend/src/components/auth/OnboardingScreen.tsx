@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useEffect, useState } from "react";
 import { MessageSquare, RefreshCw, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -17,16 +18,26 @@ export function OnboardingScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
+  const requestId = useRef(0);
   // Debounced availability check — abstracted, ready for real API.
 
-  useEffect(() => {
+useEffect(() => {
+  const id = ++requestId.current;
+
   const load = async () => {
-    const data = await suggestUsername();
-    setUsername(data.username);
+    try {
+      const data = await suggestUsername();
+
+      if (id !== requestId.current) return;
+
+      setUsername(data.username);
+    } catch (err) {
+      console.error(err);
+    }
   };
+
   load();
-  }, []);
+}, []);
 
   const usernameValidation = validateUsername(username);
   const passwordValidation = validatePassword(password);
